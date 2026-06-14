@@ -8,7 +8,10 @@ const options = {
       version: '1.0.0',
       description: 'API платформи допомоги безпритульним тваринам CarePaw',
     },
-    servers: [{ url: 'http://localhost:5000' }],
+    servers: [
+    { url: 'https://carepaw-production.up.railway.app', description: 'Production' },
+    { url: 'http://localhost:5000', description: 'Local' }
+],
     components: {
       securitySchemes: {
         bearerAuth: {
