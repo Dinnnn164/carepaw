@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: '/api' });
+const api = axios.create({
+  baseURL: 'https://carepaw-production.up.railway.app/api'
+});
 
 API.interceptors.request.use(cfg => {
   const token = localStorage.getItem('token');
