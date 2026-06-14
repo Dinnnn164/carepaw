@@ -7,19 +7,12 @@ const app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-const allowedOrigins = [
-  'http://localhost:3000', 
-  'https://carepaw-ua.netlify.app',
-  'https://carepaw-production.up.railway.app' // Додаємо сам бекенд (для роботи Swagger та внутрішніх запитів)
-];
-
-// Видаліть масив allowedOrigins і вставте цей блок одразу після const app = express();
+// Залізобетонний CORS для Netlify та Railway
 app.use(cors({
-  origin: true, // Це автоматично дозволяє той origin, з якого прийшов запит (Netlify)
+  origin: true,
   credentials: true,
   optionsSuccessStatus: 200
 }));
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -36,16 +29,13 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/posts', require('./routes/posts'));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', message: 'Сервер працює' }));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', message: 'Server is running' }));
 
 if (process.env.NODE_ENV !== 'test') {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log(`\n Сервер запущено на порту ${PORT}`);
-    console.log(` API доступне за адресою: http://localhost:${PORT}/api`);
-    console.log(`  Адмін:    admin@shelter.ua  / password`);
-    console.log(`  Власник:  owner@shelter.ua  / password`);
-    console.log(`  Юзер:     user@shelter.ua   / password\n`);
+    console.log(`\n Server started on port ${PORT}`);
+    console.log(` API available at: http://localhost:${PORT}/api`);
   });
 }
 
