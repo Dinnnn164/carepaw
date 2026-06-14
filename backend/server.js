@@ -7,7 +7,29 @@ const app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:3000', 
+  'https://carepaw-ua.netlify.app',
+  'https://carepaw-production.up.railway.app' // Додаємо сам бекенд (для роботи Swagger та внутрішніх запитів)
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // 1. Дозволяємо запити без origin (Postman, мобільні додатки)
+    if (!origin) return callback(null, true);
+    
+    // 2. Перевіряємо, чи є origin у списку дозволених
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    } else {
+      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+      return callback(new Error(msg), false);
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200 // Важливо для застарілих браузерів та деяких preflight-запитів
+}));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
