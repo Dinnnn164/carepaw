@@ -7,13 +7,7 @@ const app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://carepaw-ua.netlify.app'
-  ],
-  credentials: true
-}));
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
