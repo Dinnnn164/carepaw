@@ -13,21 +13,11 @@ const allowedOrigins = [
   'https://carepaw-production.up.railway.app' // Додаємо сам бекенд (для роботи Swagger та внутрішніх запитів)
 ];
 
+// Видаліть масив allowedOrigins і вставте цей блок одразу після const app = express();
 app.use(cors({
-  origin: function (origin, callback) {
-    // 1. Дозволяємо запити без origin (Postman, мобільні додатки)
-    if (!origin) return callback(null, true);
-    
-    // 2. Перевіряємо, чи є origin у списку дозволених
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    } else {
-      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
-      return callback(new Error(msg), false);
-    }
-  },
+  origin: true, // Це автоматично дозволяє той origin, з якого прийшов запит (Netlify)
   credentials: true,
-  optionsSuccessStatus: 200 // Важливо для застарілих браузерів та деяких preflight-запитів
+  optionsSuccessStatus: 200
 }));
 
 
