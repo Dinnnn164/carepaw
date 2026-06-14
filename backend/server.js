@@ -10,10 +10,11 @@ const swaggerSpec = require('./config/swagger');
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://luminous-churros-79d1e1.netlify.app'
+    'https://carepaw-ua.netlify.app'
   ],
   credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
