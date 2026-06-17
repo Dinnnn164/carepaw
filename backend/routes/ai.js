@@ -18,10 +18,8 @@ router.post('/chat', async (req, res) => {
       return res.json({ response: 'AI-помічник тимчасово недоступний. Не налаштовано API ключ.' });
     }
 
-    // Формуємо історію для Gemini
     const contents = [];
     
-    // Додаємо попередні повідомлення
     for (const h of history.slice(-8)) {
       contents.push({
         role: h.role === 'assistant' ? 'model' : 'user',
@@ -29,14 +27,13 @@ router.post('/chat', async (req, res) => {
       });
     }
     
-    // Додаємо поточне повідомлення
     contents.push({
       role: 'user',
       parts: [{ text: message }]
     });
 
     const response = await fetch(
-`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,       {
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
