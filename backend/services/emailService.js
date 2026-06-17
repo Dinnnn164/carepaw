@@ -1,25 +1,17 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 require('dotenv').config();
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = `"CarePaw" <${process.env.EMAIL_USER}>`;
+// Поки не підключено власний домен, листи можна надсилати лише з onboarding@resend.dev
+const FROM = 'CarePaw <onboarding@resend.dev>';
 
 async function sendMail(to, subject, html) {
   try {
-    await transporter.sendMail({ from: FROM, to, subject, html });
+    await resend.emails.send({ from: FROM, to, subject, html });
     return true;
   } catch (err) {
-    console.error('Email send error:', err.message);
+    console.error('Email send error:', err.message || err);
     return false;
   }
 }
