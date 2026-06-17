@@ -4,9 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { auth } = require('../middleware/auth');
+const { sendWelcomeEmail } = require('../services/emailService');
 require('dotenv').config();
-
-// ... інший код вище ...
 
 /**
  * @swagger
@@ -65,8 +64,9 @@ router.post('/register', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({ token, user: { id: result.insertId, name, email, role: userRole } });
-  } catch (err) {
+sendWelcomeEmail(email, name);
+
+res.status(201).json({ token, user: { id: result.insertId, name, email, role: userRole } });  } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Помилка сервера' });
   }
@@ -98,7 +98,6 @@ router.post('/register', async (req, res) => {
  *         description: Невірний email або пароль
  */
 
-// Login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -122,7 +121,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get current user
 router.get('/me', auth, async (req, res) => {
   try {
     const [rows] = await db.query('SELECT id, name, email, role, phone, avatar, created_at FROM users WHERE id = ?', [req.user.id]);
@@ -133,7 +131,6 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-// Update profile
 router.put('/profile', auth, async (req, res) => {
   try {
     const { name, phone } = req.body;
