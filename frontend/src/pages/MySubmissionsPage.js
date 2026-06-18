@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { animalsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Trash2, Clock, CheckCircle, XCircle, Upload } from 'lucide-react';
 
 const SPECIES_LABELS = { dog: 'Собака', cat: 'Кіт', bird: 'Птах', rabbit: 'Кролик', other: 'Інше' };
 const SPECIES_EMOJI = { dog: '', cat: '', bird: '', rabbit: '', other: '' };
@@ -21,6 +21,7 @@ export default function MySubmissionsPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);  
 
   const load = async () => {
     setLoading(true);
@@ -31,6 +32,20 @@ export default function MySubmissionsPage() {
   };
 
   useEffect(() => { load(); }, []);
+const handlePhotoUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setUploadingPhoto(true);
+  try {
+    const res = await animalsAPI.uploadPhoto(file);
+    setForm(prev => ({ ...prev, photo: res.data.url }));
+    toast.success('Фото завантажено!');
+  } catch (err) {
+    toast.error('Помилка завантаження фото');
+  } finally {
+    setUploadingPhoto(false);
+  }
+};
 
   const submit = async (e) => {
     e.preventDefault();
@@ -201,9 +216,18 @@ export default function MySubmissionsPage() {
                 <input className="form-control" placeholder="Наприклад: руде з білим" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
               </div>
               <div className="form-group" style={{ gridColumn: 'span 2', margin: 0 }}>
-                <label className="form-label">URL фото</label>
-                <input className="form-control" placeholder="https://..." value={form.photo} onChange={e => setForm({ ...form, photo: e.target.value })} />
-              </div>
+  <label className="form-label">Фото тварини</label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    {form.photo && (
+      <img src={form.photo} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover' }} />
+    )}
+    <label className="btn btn-outline" style={{ cursor: 'pointer' }}>
+      <Upload size={16} /> {uploadingPhoto ? 'Завантаження...' : 'Обрати файл'}
+      <input type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+    </label>
+  </div>
+</div>
               <div className="form-group" style={{ gridColumn: 'span 2', margin: 0 }}>
                 <label className="form-label">Опис *</label>
                 <textarea className="form-control" rows={3} required placeholder="Розкажіть про тварину: де знайшли, характер, особливості..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
