@@ -77,4 +77,20 @@ export const postsAPI = {
   delete: (id) => API.delete(`/posts/${id}`),
 };
 
+export const animalsAPI = {
+  getAll: (params) => API.get('/animals', { params }),
+  getOne: (id) => API.get(`/animals/${id}`),
+  create: (d) => API.post('/animals', d),
+  update: (id, d) => API.put(`/animals/${id}`, d),
+  review: (id, d) => API.put(`/animals/${id}/review`, d),
+  delete: (id) => API.delete(`/animals/${id}`),
+  uploadPhoto: (file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return API.post('/animals/upload-photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+};
+
 export default API;

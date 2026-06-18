@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { sheltersAPI, animalsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, Upload } from 'lucide-react';
 
 const SPECIES_LABELS = { dog: 'Собака', cat: 'Кіт', bird: 'Птах', rabbit: 'Кролик', other: 'Інше' };
 const STATUS_LABELS = { available: 'Доступна', pending: 'Очікує', adopted: 'Прилаштована', medical_care: 'Лікування', reserved: 'Зарезервована' };
@@ -20,6 +20,7 @@ export default function ShelterManagePage() {
   const [animalForm, setAnimalForm] = useState(emptyAnimal);
   const [shelterForm, setShelterForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -63,6 +64,21 @@ export default function ShelterManagePage() {
     setEditAnimal(a);
     setAnimalForm({ ...a });
     setShowAnimalModal(true);
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const res = await animalsAPI.uploadPhoto(file);
+      setAnimalForm(prev => ({ ...prev, photo: res.data.url }));
+      toast.success('Фото завантажено!');
+    } catch (err) {
+      toast.error('Помилка завантаження фото');
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const saveAnimal = async (e) => {
@@ -228,7 +244,6 @@ export default function ShelterManagePage() {
                 { key: 'weight', label: 'Вага (кг)', type: 'number' },
                 { key: 'age_years', label: 'Вік (роки)', type: 'number' },
                 { key: 'age_months', label: 'Вік (місяці)', type: 'number' },
-                { key: 'photo', label: 'URL фото', span: 2 },
               ].map(f => (
                 <div key={f.key} className="form-group" style={{ gridColumn: f.span ? `span ${f.span}` : undefined, margin: 0 }}>
                   <label className="form-label">{f.label}</label>
@@ -236,6 +251,21 @@ export default function ShelterManagePage() {
                     value={animalForm[f.key] || ''} onChange={e => setAnimalForm({ ...animalForm, [f.key]: e.target.value })} />
                 </div>
               ))}
+
+              <div className="form-group" style={{ gridColumn: 'span 2', margin: 0 }}>
+                <label className="form-label">Фото тварини</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {animalForm.photo && (
+                    <img src={animalForm.photo} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover' }} />
+                  )}
+                  <label className="btn btn-outline" style={{ cursor: 'pointer' }}>
+                    <Upload size={16} /> {uploadingPhoto ? 'Завантаження...' : 'Обрати файл'}
+                    <input type="file" accept="image/*" style={{ display: 'none' }}
+                      onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                  </label>
+                </div>
+              </div>
+
               {[
                 { key: 'species', label: 'Вид', opts: Object.entries(SPECIES_LABELS) },
                 { key: 'gender', label: 'Стать', opts: [['male', 'Самець'], ['female', 'Самка'], ['unknown', 'Невідомо']] },
