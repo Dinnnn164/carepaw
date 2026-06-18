@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const { auth, requireRole } = require('../middleware/auth');
+const multer = require('multer');
+const cloudinary = require('../config/cloudinary');
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 /**
  * @swagger
@@ -352,6 +356,36 @@ router.put('/:id/review', auth, requireRole('admin'), async (req, res) => {
     res.json({ message: approval_status === 'approved' ? 'Оголошення схвалено' : 'Оголошення відхилено' });
   } catch (err) {
     res.status(500).json({ message: 'Помилка сервера' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/animals/upload-photo:
+ *   post:
+ *     summary: Завантажити фото тварини
+ *     tags: [Тварини]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Посилання на завантажене фото
+ */
+router.post('/upload-photo', auth, upload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'Файл не передано' });
+
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'carepaw_animals',
+    });
+
+    res.json({ url: result.secure_url });
+  } catch (err) {
+    console.error('Cloudinary upload error:', err);
+    res.status(500).json({ message: 'Помилка завантаження фото' });
   }
 });
 
