@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { animalsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios'; 
 import toast from 'react-hot-toast';
 import { Plus, Trash2, Clock, CheckCircle, XCircle, Upload } from 'lucide-react';
 
@@ -11,12 +12,14 @@ const emptyForm = {
   name: '', species: 'dog', breed: '', age_years: 0, age_months: 0,
   gender: 'unknown', size: 'medium', color: '', description: '',
   health_status: '', vaccinated: false, sterilized: false,
-  microchipped: false, photo: '', weight: ''
+  microchipped: false, photo: '', weight: '',
+  shelter_id: ''
 };
 
 export default function MySubmissionsPage() {
   const { user } = useAuth();
   const [animals, setAnimals] = useState([]);
+  const [shelters, setShelters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -31,28 +34,46 @@ export default function MySubmissionsPage() {
     } catch { } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
-const handlePhotoUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  setUploadingPhoto(true);
-  try {
-    const res = await animalsAPI.uploadPhoto(file);
-    setForm(prev => ({ ...prev, photo: res.data.url }));
-    toast.success('Фото завантажено!');
-  } catch (err) {
-    toast.error('Помилка завантаження фото');
-  } finally {
-    setUploadingPhoto(false);
-  }
-};
+  const loadShelters = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/shelters'); 
+      setShelters(res.data);
+    } catch (err) {
+      console.error('Не вдалося завантажити притулки:', err);
+    }
+  };
+
+  useEffect(() => { 
+    load(); 
+    loadShelters(); 
+  }, []);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const res = await animalsAPI.uploadPhoto(file);
+      setForm(prev => ({ ...prev, photo: res.data.url }));
+      toast.success('Фото завантажено!');
+    } catch (err) {
+      toast.error('Помилка завантаження фото');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.species) return toast.error('Заповніть обов\'язкові поля');
     setSaving(true);
     try {
-      const r = await animalsAPI.create(form);
+      const submitData = {
+        ...form,
+        shelter_id: form.shelter_id || null
+      };
+
+      const r = await animalsAPI.create(submitData);
       toast.success(r.data.message);
       setShowModal(false);
       setForm(emptyForm);
@@ -183,6 +204,23 @@ const handlePhotoUpload = async (e) => {
                   {Object.entries(SPECIES_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
+
+              <div className="form-group" style={{ gridColumn: 'span 2', margin: 0 }}>
+                <label className="form-label">Притулок для передачі тварини</label>
+                <select 
+                  className="form-control" 
+                  value={form.shelter_id} 
+                  onChange={e => setForm({ ...form, shelter_id: e.target.value })}
+                >
+                  <option value="">-- Оберіть притулок (необов'язково) --</option>
+                  {shelters.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.city || 'Місто не вказано'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">Порода</label>
                 <input className="form-control" placeholder="Якщо відомо" value={form.breed} onChange={e => setForm({ ...form, breed: e.target.value })} />
@@ -216,18 +254,18 @@ const handlePhotoUpload = async (e) => {
                 <input className="form-control" placeholder="Наприклад: руде з білим" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
               </div>
               <div className="form-group" style={{ gridColumn: 'span 2', margin: 0 }}>
-  <label className="form-label">Фото тварини</label>
-  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-    {form.photo && (
-      <img src={form.photo} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover' }} />
-    )}
-    <label className="btn btn-outline" style={{ cursor: 'pointer' }}>
-      <Upload size={16} /> {uploadingPhoto ? 'Завантаження...' : 'Обрати файл'}
-      <input type="file" accept="image/*" style={{ display: 'none' }}
-        onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-    </label>
-  </div>
-</div>
+                <label className="form-label">Фото тварини</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {form.photo && (
+                    <img src={form.photo} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover' }} />
+                  )}
+                  <label className="btn btn-outline" style={{ cursor: 'pointer' }}>
+                    <Upload size={16} /> {uploadingPhoto ? 'Завантаження...' : 'Обрати файл'}
+                    <input type="file" accept="image/*" style={{ display: 'none' }}
+                      onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                  </label>
+                </div>
+              </div>
               <div className="form-group" style={{ gridColumn: 'span 2', margin: 0 }}>
                 <label className="form-label">Опис *</label>
                 <textarea className="form-control" rows={3} required placeholder="Розкажіть про тварину: де знайшли, характер, особливості..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
