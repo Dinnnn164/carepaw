@@ -8,6 +8,7 @@ const SYSTEM_PROMPT = `Ти — AI-помічник платформи для д
 Якщо питання НЕ стосується тварин — ввічливо відмов і поясни що можеш говорити тільки про тварин.
 Відповідай українською мовою, дружньо та інформативно.`;
 
+
 router.post('/chat', async (req, res) => {
   try {
     const { message, history = [], user_id } = req.body;
@@ -33,9 +34,12 @@ router.post('/chat', async (req, res) => {
     });
 
     const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,       {
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        },
         body: JSON.stringify({
           system_instruction: {
             parts: [{ text: SYSTEM_PROMPT }]
