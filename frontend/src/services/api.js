@@ -29,14 +29,6 @@ export const authAPI = {
   updateProfile: (d) => API.put('/auth/profile', d),
 };
 
-export const animalsAPI = {
-  getAll: (params) => API.get('/animals', { params }),
-  getOne: (id) => API.get(`/animals/${id}`),
-  create: (d) => API.post('/animals', d),
-  update: (id, d) => API.put(`/animals/${id}`, d),
-  review: (id, d) => API.put(`/animals/${id}/review`, d),
-  delete: (id) => API.delete(`/animals/${id}`),
-};
 
 export const sheltersAPI = {
   getAll: (params) => API.get('/shelters', { params }),
